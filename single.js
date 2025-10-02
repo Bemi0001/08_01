@@ -1,48 +1,46 @@
-console.log("Product page loaded...");
 
-const id = 1526; 
-const productUrl = "https://kea-alt-del.dk/t7/api/products/" + id;
-const productContainer = document.querySelector("#productContainer");
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
 
-console.log("Fetching product from:", productUrl);
 
-// Fetch data
-function getData() {
-  fetch(productUrl)
-    .then(res => res.json())
-    .then(data => show(data));
-}
+fetch(`https://kea-alt-del.dk/t7/api/products/${id}`)
+  .then(res => res.json())
+  .then(product => showProduct(product));
 
-// Render data into HTML
-function show(data) {
-  console.log("Product data:", data);
 
-  productContainer.innerHTML = `
+function showProduct(product) {
+  const container = document.querySelector("#productContainer");
+
+  container.innerHTML = `
     <div class="product_gallery">
-      <img src="https://kea-alt-del.dk/t7/images/webp/640/${id}.webp" 
-           alt="${data.productdisplayname}" 
-           class="productImage">
+      <img src="https://kea-alt-del.dk/t7/images/webp/1000/${product.id}.webp" alt="${product.productdisplayname}">
     </div>
 
     <div class="product_details">
-      <h2 class="product_title">${data.productdisplayname}</h2>
-      <p class="product_price">${data.price} DKK</p>
-      <p class="product_desc">
-        ${data.description || "No description available"}
+      <h2 class="product_title">${product.productdisplayname}</h2>
+
+      <p class="product_price">
+        ${product.discount 
+          ? `<span class="old-price">${product.price} DKK</span> 
+             <span class="new-price">${Math.floor(product.price - (product.price * product.discount) / 100)} DKK</span>`
+          : `${product.price} DKK`}
       </p>
 
+      <p class="product_desc">${product.description || "No description available."}</p>
+
       <div class="product_actions">
-        <button class="btn primary">Add to Cart</button>
+        ${product.soldout 
+          ? `<button class="btn secondary disabled">Sold Out</button>`
+          : `<button class="btn primary">Add to Cart</button>`}
         <button class="btn secondary">Add to Wishlist</button>
       </div>
 
       <div class="product_meta">
-        <p><strong>Category:</strong> ${data.category || "N/A"}</p>
-        <p><strong>Availability:</strong> ${data.soldout ? "Sold Out" : "In Stock"}</p>
-        <p><strong>Shipping:</strong> 2–4 business days</p>
+        <p><strong>Category:</strong> ${product.category}</p>
+        <p><strong>Subcategory:</strong> ${product.subcategory}</p>
+        <p><strong>Brand:</strong> ${product.brandname}</p>
+        <p><strong>Season:</strong> ${product.season}</p>
       </div>
     </div>
   `;
 }
-
-getData();
